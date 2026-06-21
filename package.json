@@ -1,0 +1,21 @@
+{
+  "name": "lytro-og",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lytro OG — living-picture viewer + Wi-Fi camera ingest (Capacitor iOS app).",
+  "scripts": {
+    "serve": "python3 -m http.server 8000 --directory www",
+    "test:protocol": "node www/js/protocol.test.js",
+    "cap:add:ios": "cap add ios",
+    "cap:sync": "cap sync",
+    "cap:open:ios": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/filesystem": "^6.0.1"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  }
+}

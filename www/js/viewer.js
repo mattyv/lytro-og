@@ -19,6 +19,7 @@
   let cursor = null; // {x,y} in canvas px, or null
   let showDepth = false;
   let depthCanvas = null;
+  let spread = 0; // aperture: ± planes blended around the active one
 
   // ---------- loading ----------
   function setStatus(msg, kind) {
@@ -59,6 +60,7 @@
     showDepth = false;
     el("depthBtn").setAttribute("aria-pressed", "false");
     depthCanvas = model.depth ? buildDepthCanvas(model.depth) : null;
+    resetControls();
     buildRail();
     resize();
     setStatus(
@@ -120,6 +122,28 @@
     [...railEl.children].forEach((c, i) =>
       c.classList.toggle("on", i === active)
     );
+    syncFocusSlider();
+  }
+
+  // ---------- focus / aperture sliders ----------
+  function resetControls() {
+    const fs = el("focus");
+    const ap = el("aperture");
+    const n = model.frames.length;
+    fs.max = String(n - 1);
+    fs.value = String(active);
+    fs.disabled = n < 2;
+    ap.max = String(Math.floor((n - 1) / 2));
+    ap.value = "0";
+    ap.disabled = n < 3;
+    spread = 0;
+    el("apertureVal").textContent = "±0";
+    el("focusVal").textContent = model.frames[active].focus;
+  }
+  function syncFocusSlider() {
+    if (!model) return;
+    el("focus").value = String(active);
+    el("focusVal").textContent = model.frames[active].focus;
   }
 
   // ---------- refocus ----------
@@ -160,6 +184,23 @@
       }
       imgRect = { x: (W - w) / 2, y: (H - h) / 2, w, h };
     }
+  }
+
+  // Blend a window of ±spread planes around `active` into a weighted composite,
+  // so a wider aperture deepens the in-focus range. Triangular weights peaking
+  // at the active plane, painted with the over-operator running-average trick.
+  function compositeDraw() {
+    const r = imgRect;
+    const lo = Math.max(0, active - spread);
+    const hi = Math.min(model.frames.length - 1, active + spread);
+    let acc = 0;
+    for (let i = lo; i <= hi; i++) {
+      const w = spread + 1 - Math.abs(i - active);
+      acc += w;
+      ctx.globalAlpha = w / acc; // weighted running average across the stack
+      ctx.drawImage(model.frames[i].img, r.x, r.y, r.w, r.h);
+    }
+    ctx.globalAlpha = 1;
   }
 
   function lerpFrameDraw() {
@@ -226,7 +267,8 @@
     if (!model) return;
     if (fade < 1) fade = Math.min(1, fade + 0.16);
     ctx.clearRect(0, 0, stage.width, stage.height);
-    lerpFrameDraw();
+    if (spread > 0) compositeDraw();
+    else lerpFrameDraw();
     drawHUD();
   }
 
@@ -247,6 +289,16 @@
     stage.classList.remove("pulse");
     void stage.offsetWidth;
     stage.classList.add("pulse");
+  });
+
+  el("focus").addEventListener("input", (e) => {
+    if (!model) return;
+    cursor = null; // manual focus overrides hover until you move over the stage again
+    setActive(Number(e.target.value));
+  });
+  el("aperture").addEventListener("input", (e) => {
+    spread = Number(e.target.value);
+    el("apertureVal").textContent = "±" + spread;
   });
 
   el("depthBtn").addEventListener("click", (e) => {

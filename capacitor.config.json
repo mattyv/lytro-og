@@ -1,0 +1,8 @@
+{
+  "appId": "com.mattyv.lytroog",
+  "appName": "Lytro OG",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "always"
+  }
+}
