@@ -7,6 +7,33 @@ which gives the web layer a raw TCP socket pinned to the Wi-Fi interface.
 > You need **macOS + Xcode** for everything below. The repo cannot build iOS on
 > Linux/CI, so this is the on-device half.
 
+## Prerequisites (toolchain)
+
+These aren't bundled — install them once on the Mac:
+
+```bash
+# Node.js (LTS) — for the Capacitor CLI. Skip if `node -v` already works.
+brew install node
+
+# Full Xcode — Command Line Tools alone are NOT enough; `npx cap add ios`/build need it.
+brew install xcodes
+xcodes install --latest        # interactive: Apple ID + 2FA, ~12GB; auto-selects when done
+# (or install Xcode from the Mac App Store, then: sudo xcode-select -s /Applications/Xcode.app)
+
+# CocoaPods — `cap add ios` runs `pod install`.
+brew install cocoapods
+```
+
+Sanity check before continuing — all three must print a version:
+
+```bash
+node -v && xcodebuild -version && pod --version
+```
+
+A free Apple ID is enough to build to your own device (7-day signing). A paid
+Apple Developer account is only needed for `NEHotspotConfiguration` (joining the
+camera Wi-Fi from inside the app) — see the optional section below.
+
 ## One-time setup
 
 ```bash
