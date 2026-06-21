@@ -28,6 +28,7 @@
         <span id="apertureVal" class="rdout">±0</span>
       </label>
       <button id="depthBtn" class="ctl" aria-pressed="false" title="Toggle depth map (D)">depth map</button>
+      <button id="infoBtn" class="ctl" aria-pressed="false" title="Toggle metadata (I)">info</button>
       <button id="loadBtn" class="ctl">load .lfp</button>
       <button id="camBtn" class="ctl" aria-pressed="false" title="Connect to the camera over Wi-Fi">📡 camera</button>
       <input id="file" type="file" accept=".lfp,.lfr" hidden />
@@ -63,6 +64,7 @@
       <div id="stagewrap" class="stagewrap">
         <canvas id="stage"></canvas>
         <div class="empty-hint">move across the image to refocus · drop a .lfp to load your own</div>
+        <div id="metapanel" class="metapanel" hidden aria-label="Picture metadata"></div>
       </div>
       <div>
         <div class="rail-label">focus stack — λ planes</div>

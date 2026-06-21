@@ -1,25 +1,41 @@
 // lytro.js — high-level camera client. Speaks the protocol (protocol.js) over a
-// transport (transport.js) and exposes the operations the UI needs:
-//   connect → camera info → list photos → download a picture's components.
+// transport and exposes the operations the UI needs: connect → camera info →
+// list photos → download a picture's components (+ calibration).
 //
-// Transaction shape mirrors lytroctrl: a LOAD command primes the camera, then a
-// "read transaction" (CONTENT_LENGTH followed by repeated READ) drains the bytes.
+// All socket operations are serialized through a single queue (`_run`) so the
+// request/response stream can't interleave — important because the UI and the
+// keep-alive timer can both poke the camera. Transaction shape mirrors lytroctrl:
+// a LOAD command primes the camera, then CONTENT_LENGTH + repeated READ drains it.
+//
+// UMD: window.Lytro in the browser, require()-able in Node for the test harness.
 
-(function (global) {
-  const P = global.LytroProto;
-
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory(require("./protocol.js"));
+  else root.Lytro = factory(root.LytroProto);
+})(typeof self !== "undefined" ? self : this, function (P) {
   const DEFAULT_HOST = "10.100.1.1";
   const DEFAULT_PORT = 5678;
 
   class LytroCamera {
     constructor(transport) {
       this.t = transport;
+      this._chain = Promise.resolve();
+      this._keepAlive = null;
+    }
+
+    // serialize every camera operation onto one queue
+    _run(fn) {
+      const next = this._chain.then(fn, fn);
+      // keep the chain alive but don't let rejections poison the next op
+      this._chain = next.catch(() => {});
+      return next;
     }
 
     async connect(host = DEFAULT_HOST, port = DEFAULT_PORT) {
       await this.t.connect(host, port);
     }
     async close() {
+      this.stopKeepAlive();
       await this.t.close();
     }
 
@@ -64,26 +80,30 @@
       return this._readAll(onProgress);
     }
 
-    async getCameraInfo() {
-      const data = await this._loadAndRead(P.getCameraInfo());
-      return P.decodeCameraInfo(data);
+    getCameraInfo() {
+      return this._run(async () => P.decodeCameraInfo(await this._loadAndRead(P.getCameraInfo())));
     }
 
-    async listPhotos() {
-      const data = await this._loadAndRead(P.photoList());
-      return P.decodePictureList(data);
+    listPhotos() {
+      return this._run(async () => P.decodePictureList(await this._loadAndRead(P.photoList())));
     }
 
-    // Download one component file (jpg/raw/txt/128/stk). Returns null if the
-    // camera reports the file is missing (load ack with zero length).
-    async downloadFile(path, onProgress) {
-      await this.t.write(P.loadFile(path));
-      const ack = await this._recv();
-      if (ack.hdr.length === 0) return null; // not found
-      return this._readAll(onProgress);
+    getCalibration(onProgress) {
+      return this._run(() => this._loadAndRead(P.calibration(), onProgress));
     }
 
-    // Download every component for a picture entry. Missing ones are skipped.
+    // Download one component file (jpg/raw/txt/128/stk). Resolves null if the
+    // camera reports the file missing (load ack with zero length).
+    downloadFile(path, onProgress) {
+      return this._run(async () => {
+        await this.t.write(P.loadFile(path));
+        const ack = await this._recv();
+        if (ack.hdr.length === 0) return null; // not found
+        return this._readAll(onProgress);
+      });
+    }
+
+    // Download every component for a picture entry; missing ones are skipped.
     async downloadPicture(entry, onProgress) {
       const paths = P.picturePaths(entry);
       const files = {};
@@ -93,7 +113,22 @@
       }
       return files;
     }
+
+    // Periodic no-op to keep the camera's Wi-Fi watchdog from sleeping. Runs
+    // through the same queue, so it never collides with a real transfer.
+    startKeepAlive(intervalMs = 25000) {
+      this.stopKeepAlive();
+      this._keepAlive = setInterval(() => {
+        this.getCameraInfo().catch(() => {});
+      }, intervalMs);
+    }
+    stopKeepAlive() {
+      if (this._keepAlive) {
+        clearInterval(this._keepAlive);
+        this._keepAlive = null;
+      }
+    }
   }
 
-  global.Lytro = { LytroCamera, DEFAULT_HOST, DEFAULT_PORT };
-})(window);
+  return { LytroCamera, DEFAULT_HOST, DEFAULT_PORT };
+});

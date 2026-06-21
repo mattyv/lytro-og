@@ -60,6 +60,7 @@
     showDepth = false;
     el("depthBtn").setAttribute("aria-pressed", "false");
     depthCanvas = model.depth ? buildDepthCanvas(model.depth) : null;
+    renderMeta();
     resetControls();
     buildRail();
     resize();
@@ -77,6 +78,24 @@
     const r = new FileReader();
     r.onload = () => load(r.result, file.name);
     r.readAsArrayBuffer(file);
+  }
+
+  // ---------- metadata panel ----------
+  function renderMeta() {
+    const p = el("metapanel");
+    const rows = (model && model.info) || [];
+    if (!rows.length) {
+      p.innerHTML = '<div class="meta-empty">no metadata</div>';
+      return;
+    }
+    p.innerHTML =
+      '<div class="meta-title">picture metadata</div>' +
+      rows
+        .map(
+          ([k, v]) =>
+            '<div class="meta-row"><span>' + k + "</span><b>" + v + "</b></div>"
+        )
+        .join("");
   }
 
   // ---------- depth heatmap ----------
@@ -305,8 +324,17 @@
     showDepth = !showDepth;
     e.currentTarget.setAttribute("aria-pressed", String(showDepth));
   });
+  el("infoBtn").addEventListener("click", (e) => {
+    const p = el("metapanel");
+    const open = p.hasAttribute("hidden");
+    p.toggleAttribute("hidden", !open);
+    e.currentTarget.setAttribute("aria-pressed", String(open));
+  });
   document.addEventListener("keydown", (e) => {
+    const tag = (e.target.tagName || "").toLowerCase();
+    if (tag === "input" || tag === "textarea") return;
     if (e.key.toLowerCase() === "d" && model) el("depthBtn").click();
+    if (e.key.toLowerCase() === "i" && model) el("infoBtn").click();
   });
 
   const fileInput = el("file");

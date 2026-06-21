@@ -40,11 +40,13 @@ The camera runs as a Wi-Fi access point speaking a raw-TCP binary protocol on
 it. The native app provides a `LytroTcp` Capacitor plugin (a `Network.framework`
 socket pinned to the Wi-Fi interface) and the web UI drives it.
 
-The protocol port (`www/js/protocol.js`) is **verified byte-for-byte** against the
-reference implementations with a Node test:
+The protocol port is **verified in software** with headless Node tests (also run
+in CI): `protocol.js` is byte-for-byte identical to the reference frames, and the
+high-level client is driven through the full download transaction against a mock
+camera (multi-chunk reads, missing files, calibration).
 
 ```bash
-npm run test:protocol
+npm test
 ```
 
 Building and running on a device needs macOS + Xcode — see

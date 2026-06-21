@@ -92,6 +92,11 @@ reaches `10.100.1.1`. The fix is in `LytroTcpConnection.swift`:
 
 ```bash
 npm run serve            # static-serve www/ at :8000 (viewer; camera panel shows "needs app")
-npm run test:protocol    # node frame-equivalence test
+npm test                 # protocol byte-equivalence + mock-camera transaction (CI runs this)
+npm run test:protocol    # just the frame-equivalence test
+npm run test:client      # just the high-level client vs the mock camera
 # iOS build: see native/ios/README.md
 ```
+
+CI (`.github/workflows/ci.yml`) runs `npm test` on push/PR. Pages
+(`.github/workflows/pages.yml`) deploys `www/` (viewer only) on push to `main`.

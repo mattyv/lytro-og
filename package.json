@@ -5,7 +5,9 @@
   "description": "Lytro OG — living-picture viewer + Wi-Fi camera ingest (Capacitor iOS app).",
   "scripts": {
     "serve": "python3 -m http.server 8000 --directory www",
+    "test": "node www/js/protocol.test.js && node www/js/lytro.test.js",
     "test:protocol": "node www/js/protocol.test.js",
+    "test:client": "node www/js/lytro.test.js",
     "cap:add:ios": "cap add ios",
     "cap:sync": "cap sync",
     "cap:open:ios": "cap open ios"

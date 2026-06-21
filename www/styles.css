@@ -254,6 +254,39 @@ footer .hint b { color: var(--dim); font-weight: 400; }
   footer { flex-wrap: wrap; padding: 9px 14px 14px; }
 }
 
+/* ---- metadata panel (overlay on stage) ---- */
+.metapanel {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 5;
+  max-width: 280px;
+  background: rgba(7, 18, 17, 0.86);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 10px 12px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  backdrop-filter: blur(2px);
+}
+.metapanel[hidden] { display: none; }
+.meta-title {
+  color: var(--amber-soft);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 2px 0;
+}
+.meta-row span { color: var(--dim); }
+.meta-row b { color: var(--hi); font-weight: 500; }
+.meta-empty { color: var(--dim); }
+
 /* ---- camera ingest panel ---- */
 button.ctl.primary {
   background: rgba(255, 178, 62, 0.14);
