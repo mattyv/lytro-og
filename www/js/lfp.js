@@ -95,7 +95,34 @@
       depth,
       width: accel.width || 704,
       height: accel.height || 480,
+      meta,
+      info: pictureInfo(meta, frames, depth),
     };
+  }
+
+  // Pull human-readable capture facts out of the metadata JSON. Everything is
+  // optional/defensive — different camera generations populate different fields.
+  function pictureInfo(meta, frames, depth) {
+    const img = meta?.frames?.[0]?.frame?.metadata?.image || {};
+    const dev = meta?.frames?.[0]?.frame?.metadata?.devices || {};
+    const lambdas = frames.map((f) => f.focus);
+    const rows = [];
+    const push = (k, v) => {
+      if (v != null && v !== "") rows.push([k, String(v)]);
+    };
+
+    push("captured", dev?.clock?.zuluTime ? dev.clock.zuluTime.replace("T", " ").replace(/\.\d+Z$/, " UTC") : null);
+    if (img.width && img.height) push("sensor", img.width + " × " + img.height);
+    push("ISO", img.iso);
+    if (img.pixelPacking?.bitsPerPixel) push("bit depth", img.pixelPacking.bitsPerPixel + "-bit");
+    push("focus planes", frames.length);
+    if (lambdas.length) push("λ planes", lambdas[0].toFixed(1) + " … " + lambdas[lambdas.length - 1].toFixed(1));
+    if (depth) {
+      push("depth grid", depth.w + " × " + depth.h);
+      push("depth λ", depth.min.toFixed(1) + " … " + depth.max.toFixed(1));
+    }
+    push("generator", (meta?.generators && meta.generators[0]) || meta?.frames?.[0]?.frame?.metadata?.generator);
+    return rows;
   }
 
   // Lambda (focus depth) at normalized image coords u,v in [0,1].

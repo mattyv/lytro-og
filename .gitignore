@@ -1,0 +1,12 @@
+# dependencies
+node_modules/
+
+# generated native projects (regenerate with `npx cap add ios`)
+/ios/
+/android/
+
+# the Swift plugin sources live in native/ios/ and are copied into /ios/ — see native/ios/README.md
+
+# os / editor cruft
+.DS_Store
+*.log

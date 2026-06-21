@@ -1,0 +1,20 @@
+name: CI
+
+# Runs the headless test suites (protocol byte-equivalence + mock-camera
+# transaction). No dependencies needed — the tests use only Node built-ins.
+
+on:
+  push:
+    branches: [main, "claude/**"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm test

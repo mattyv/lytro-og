@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Lytro OG — Living Picture Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <span class="brand">Lytro <b>OG</b></span>
+      <span class="tag">living-picture viewer</span>
+      <span class="spacer"></span>
+      <label class="rangectl" title="Focus plane — overrides hover">
+        <span>focus</span>
+        <input id="focus" type="range" min="0" max="0" value="0" step="1" />
+        <span id="focusVal" class="rdout">—</span>
+      </label>
+      <label class="rangectl" title="Aperture — blend adjacent focus planes for deeper focus">
+        <span>aperture</span>
+        <input id="aperture" type="range" min="0" max="0" value="0" step="1" />
+        <span id="apertureVal" class="rdout">±0</span>
+      </label>
+      <button id="depthBtn" class="ctl" aria-pressed="false" title="Toggle depth map (D)">depth map</button>
+      <button id="infoBtn" class="ctl" aria-pressed="false" title="Toggle metadata (I)">info</button>
+      <button id="loadBtn" class="ctl">load .lfp</button>
+      <button id="camBtn" class="ctl" aria-pressed="false" title="Connect to the camera over Wi-Fi">📡 camera</button>
+      <input id="file" type="file" accept=".lfp,.lfr" hidden />
+    </header>
+
+    <aside id="campanel" class="campanel" hidden aria-label="Camera ingest">
+      <div class="cam-head">
+        <span class="cam-title">camera — Wi-Fi ingest</span>
+        <button id="camClose" class="ctl" title="Close">✕</button>
+      </div>
+
+      <div id="camUnsupported" class="cam-note" hidden>
+        Camera download needs the native iOS app build (a browser can't open the
+        camera's raw TCP socket). You can still load <b>.lfp</b> files into the viewer.
+      </div>
+
+      <div id="camConnect" class="cam-block">
+        <div class="cam-row">
+          <label>host <input id="camHost" type="text" value="10.100.1.1" /></label>
+          <label>port <input id="camPort" type="text" value="5678" /></label>
+        </div>
+        <p class="cam-hint">Join the camera's Wi-Fi network in iOS Settings first, then connect.</p>
+        <button id="camConnectBtn" class="ctl primary">connect</button>
+      </div>
+
+      <div id="camInfo" class="cam-info" hidden></div>
+      <div id="camStatus" class="cam-status"></div>
+      <div id="camList" class="cam-list"></div>
+      <div id="camGallery" class="cam-gallery"></div>
+    </aside>
+
+    <main>
+      <div id="stagewrap" class="stagewrap">
+        <canvas id="stage"></canvas>
+        <div class="empty-hint">move across the image to refocus · drop a .lfp to load your own</div>
+        <div id="metapanel" class="metapanel" hidden aria-label="Picture metadata"></div>
+      </div>
+      <div>
+        <div class="rail-label">focus stack — λ planes</div>
+        <div id="rail" class="rail"></div>
+      </div>
+    </main>
+
+    <footer>
+      <span id="status" class="status">Loading…</span>
+      <span class="spacer"></span>
+      <span class="hint"><b>hover</b> refocus &nbsp;·&nbsp; <b>click</b> lock &nbsp;·&nbsp; <b>D</b> depth</span>
+    </footer>
+
+    <script src="js/lfp.js"></script>
+    <script src="js/protocol.js"></script>
+    <script src="js/transport.js"></script>
+    <script src="js/lytro.js"></script>
+    <script src="js/viewer.js"></script>
+    <script src="js/ingest.js"></script>
+  </body>
+</html>
